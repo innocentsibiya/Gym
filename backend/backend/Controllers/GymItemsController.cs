@@ -1,4 +1,6 @@
-﻿using backend.Models;
+﻿using backend.Interfaces;
+using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GymApi.Controllers
@@ -7,32 +9,41 @@ namespace GymApi.Controllers
     [Route("api/[controller]")]
     public class GymItemsController : ControllerBase
     {
-        private static readonly List<GymItem> Items = new()
+        private readonly IGymItems _itemService;
+
+        public GymItemsController(IGymItems itemService)
         {
-            new GymItem { Id = 1, Name = "Dumbbell", Price = 49.99m, Quantity = 10 },
-            new GymItem { Id = 2, Name = "Treadmill", Price = 799.99m, Quantity = 3 },
-            new GymItem { Id = 3, Name = "Yoga Mat", Price = 29.99m, Quantity = 25 }
-        };
+            _itemService = itemService;
+        }
 
         [HttpGet]
         public ActionResult<IEnumerable<GymItem>> GetAll()
         {
+            List<GymItem> Items = _itemService.GetAllItems();
             return Ok(Items);
         }
 
         [HttpGet("{id}")]
         public ActionResult<GymItem> GetById(int id)
         {
-            var item = Items.FirstOrDefault(x => x.Id == id);
-            if (item == null) return NotFound();
+            GymItem item = _itemService.GetItemById(id);
+            if (item == null)
+                return NotFound($"Item with ID {id} not found.");
+
             return Ok(item);
+        }
+
+        [HttpGet("category/{category}")]
+        public ActionResult<IEnumerable<GymItem>> GetByCategory(string category)
+        {
+            var items = _itemService.GetItemsByCategory(category);
+            return Ok(items);
         }
 
         [HttpPost]
         public ActionResult<GymItem> Create(GymItem newItem)
         {
-            newItem.Id = Items.Max(x => x.Id) + 1;
-            Items.Add(newItem);
+            _itemService.CreateItem(newItem);
             return CreatedAtAction(nameof(GetById), new { id = newItem.Id }, newItem);
         }
     }

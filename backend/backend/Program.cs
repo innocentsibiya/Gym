@@ -1,3 +1,6 @@
+using backend.Interfaces;
+using backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -10,6 +13,7 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddScoped<IGymItems, GymItemService>();
 
 // Add Swagger/OpenAPI services
 builder.Services.AddEndpointsApiExplorer();
